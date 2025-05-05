@@ -1,8 +1,6 @@
 package blockchain
 
 import (
-	"bytes"
-	"crypto/sha256"
 	"time"
 )
 
@@ -13,20 +11,28 @@ type Block struct {
 	Data          []byte // dados arbitrários (ex: transações)
 	PrevBlockHash []byte // hash do bloco anterior
 	Hash          []byte // hash do próprio bloco (calculado a partir dos campos acima)
+	Nonce         int    // indica o numero de iteracoes para encontrar um hash valido
 }
 
 // NewBlock cria um novo bloco a partir dos dados e do hash do bloco anterior.
 // Essa função é pura: dado o mesmo input, sempre gera o mesmo resultado.
-func NewBlock(data string, prevHash []byte) Block {
-	timestamp := time.Now().Unix()
-	// headers é a concatenação dos dados usados para gerar o hash
-	headers := bytes.Join([][]byte{prevHash, []byte(data), []byte(string(timestamp))}, []byte{})
-	hash := sha256.Sum256(headers)
 
-	return Block{
-		Timestamp:     timestamp,
-		Data:          []byte(data),
-		PrevBlockHash: prevHash,
-		Hash:          hash[:],
+// alterado para que seja passado os dados base para o ProofOfWork gerar um hash valido
+// o hash e nonce é populado pelo ProofOfWork
+func NewBlock(data string, prevHash []byte) *Block {
+	block := &Block{
+		time.Now().Unix(),
+		[]byte(data),
+		prevHash,
+		[]byte{},
+		0,
 	}
+
+	pow := NewProofOfWork(block)
+	nonce, hash := pow.Run()
+
+	block.Hash = hash[:]
+	block.Nonce = nonce
+
+	return block
 }
