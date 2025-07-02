@@ -1,5 +1,7 @@
 package blockchain
 
+import "slices"
+
 // Blockchain representa a cadeia de blocos.
 // Aqui é uma lista imutável de blocos (por valor).
 type Blockchain struct {
@@ -8,7 +10,7 @@ type Blockchain struct {
 
 // NewGenesisBlock cria o primeiro bloco da cadeia, conhecido como "Genesis Block".
 // Não possui hash anterior.
-func NewGenesisBlock() Block {
+func NewGenesisBlock() *Block {
 	return NewBlock("Genesis Block", []byte{})
 }
 
@@ -16,7 +18,7 @@ func NewGenesisBlock() Block {
 // É a porta de entrada da cadeia.
 func NewBlockchain() Blockchain {
 	return Blockchain{
-		Blocks: []Block{NewGenesisBlock()},
+		Blocks: []Block{*NewGenesisBlock()},
 	}
 }
 
@@ -29,7 +31,7 @@ func AddBlock(bc Blockchain, data string) Blockchain {
 	newBlock := NewBlock(data, lastBlock.Hash)
 
 	// Cria uma nova slice (imutável) contendo os blocos anteriores + o novo bloco
-	newChain := append([]Block{}, bc.Blocks...) // cópia dos blocos antigos
-	newChain = append(newChain, newBlock)       // adiciona o novo bloco
+	newChain := slices.Clone(bc.Blocks)    // cópia dos blocos antigos
+	newChain = append(newChain, *newBlock) // adiciona o novo bloco
 	return Blockchain{Blocks: newChain}
 }
