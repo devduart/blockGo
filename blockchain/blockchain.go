@@ -35,3 +35,35 @@ func AddBlock(bc Blockchain, data string) Blockchain {
 	newChain = append(newChain, *newBlock) // adiciona o novo bloco
 	return Blockchain{Blocks: newChain}
 }
+
+// IsValid verifica se a blockchain é válida.
+// Verifica ligações entre blocos e se o hash cumpre o proof-of-work.
+func (bc Blockchain) IsValid() bool {
+    for i := 1; i < len(bc.Blocks); i++ {
+        current := bc.Blocks[i]
+        previous := bc.Blocks[i-1]
+
+        if !bytes.Equal(current.PrevHash, previous.Hash) {
+            log.Printf("Invalid PrevHash at block %d", i)
+            return false
+        }
+
+        pow := NewProofOfWork(&current)
+        if !pow.Validate() {
+            log.Printf("Invalid PoW at block %d", i)
+            return false
+        }
+    }
+    return true
+}
+
+// ChooseLongestValidChain seleciona a cadeia mais longa válida entre as fornecidas.
+func ChooseLongestValidChain(chains []Blockchain) Blockchain {
+	var longest Blockchain
+	for _, chain := range chains {
+		if chain.IsValid() && len(chain.Blocks) > len(longest.Blocks) {
+			longest = chain
+		}
+	}
+	return longest
+}
